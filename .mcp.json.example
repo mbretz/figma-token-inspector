@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "figma-tokens": {
+      "command": "node",
+      "args": ["<path-to-this-repo>/server/dist/index.js"]
+    }
+  }
+}

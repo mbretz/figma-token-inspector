@@ -1,0 +1,42 @@
+<!doctype html>
+<meta charset="utf-8" />
+<style>
+  body { font: 12px system-ui, sans-serif; margin: 12px; }
+  #dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #c33; margin-right: 6px; }
+  #dot.on { background: #2a2; }
+  #last { color: #888; margin-top: 6px; }
+</style>
+<div><span id="dot"></span><span id="status">Connecting to MCP server…</span></div>
+<div id="last"></div>
+<script>
+  const URL = "ws://localhost:3055";
+  const dot = document.getElementById("dot");
+  const status = document.getElementById("status");
+  const last = document.getElementById("last");
+  let ws;
+
+  function connect() {
+    ws = new WebSocket(URL);
+    ws.onopen = () => {
+      dot.className = "on";
+      status.textContent = "Connected to MCP server";
+    };
+    ws.onclose = () => {
+      dot.className = "";
+      status.textContent = "Disconnected – retrying…";
+      setTimeout(connect, 2000);
+    };
+    ws.onerror = () => ws.close();
+    ws.onmessage = (e) => {
+      const req = JSON.parse(e.data);
+      last.textContent = "Last request: " + req.action + " @ " + new Date().toLocaleTimeString();
+      parent.postMessage({ pluginMessage: req }, "*");
+    };
+  }
+
+  onmessage = (e) => {
+    const res = e.data.pluginMessage;
+    if (res && ws && ws.readyState === 1) ws.send(JSON.stringify(res));
+  };
+  connect();
+</script>
